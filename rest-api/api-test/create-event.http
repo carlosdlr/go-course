@@ -1,8 +1,9 @@
 POST http://localhost:8080/events
 Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Impob25kb2U1QGVtYWlsLmNvbSIsImV4cCI6MTc1NTkxNDEyMSwidXNlcklkIjozfQ.KcjqU3FO-68b256bmlDpLjDkqg07bAGpXUWjurLthcY
 
 {
-  "name": "New Event 2",
+  "name": "New Event 3",
   "description": "This is a new event.",
   "date_time": "2023-10-01T10:00:00Z",
   "location": "Online"

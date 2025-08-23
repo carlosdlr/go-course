@@ -14,7 +14,7 @@ type User struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (u User) SaveUser() error {
+func (u *User) SaveUser() error {
 	query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
 	stmt, err := db.DB.Prepare(query)
 	if err != nil {
@@ -40,16 +40,16 @@ func (u User) SaveUser() error {
 	return err
 }
 
-func (u User) ValidateCredentials(email, password string) (bool, error) {
+func (u *User) ValidateCredentials() (bool, error) {
 	query := "SELECT id, password FROM users WHERE email = ?"
-	row := db.DB.QueryRow(query, email)
+	row := db.DB.QueryRow(query, u.Email)
 
 	var hashedPassword string
 	if err := row.Scan(&u.ID, &hashedPassword); err != nil {
 		return false, errors.New("invalid credentials")
 	}
 
-	err := util.CompareHashAndPassword(hashedPassword, password)
+	err := util.CompareHashAndPassword(hashedPassword, u.Password)
 	if err != nil {
 		return false, errors.New("invalid credentials")
 	}

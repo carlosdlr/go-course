@@ -32,7 +32,7 @@ func login(context *gin.Context) {
 		return
 	}
 
-	valid, err := user.ValidateCredentials(user.Email, user.Password)
+	valid, err := user.ValidateCredentials()
 	if err != nil || !valid {
 		context.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
