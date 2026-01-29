@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"example.com/rest-api/models"
-	"example.com/rest-api/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,29 +18,16 @@ func getEvents(context *gin.Context) {
 }
 
 func createEvent(context *gin.Context) {
-	token := context.Request.Header.Get("Authorization")
-
-	if token == "" {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
-
-	userId, err := util.VerifyToken(token)
-	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
-		return
-	}
-
 	var newEvent models.Event
-
 	if err := context.ShouldBindJSON(&newEvent); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	userId := context.GetInt64("userId")
 	newEvent.UserID = userId
 
-	err = newEvent.SaveEvent()
+	err := newEvent.SaveEvent()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not save event"})
 		return
@@ -75,9 +61,16 @@ func updateEvent(context *gin.Context) {
 		return
 	}
 
-	_, err = models.GetEventByID(eventId)
+	userId := context.GetInt64("userId")
+	event, err := models.GetEventByID(eventId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve event"})
+		return
+	}
+
+	if event == nil || event.UserID != userId {
+		context.JSON(http.StatusNotFound, gin.H{"error": "Event not found or not authorized"})
 		return
 	}
 
@@ -103,11 +96,19 @@ func deleteEvent(context *gin.Context) {
 		return
 	}
 
+	userId := context.GetInt64("userId")
 	event, err := models.GetEventByID(eventId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve event"})
 		return
 	}
+
+	if event == nil || event.UserID != userId {
+		context.JSON(http.StatusNotFound, gin.H{"error": "Event not found or not authorized"})
+		return
+	}
+
 	err = event.DeleteEvent()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete event"})
